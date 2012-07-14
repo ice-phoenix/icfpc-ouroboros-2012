@@ -122,39 +122,50 @@ class Controller():
 		current_unstable = list(sorted(mvc.m.unstable_rocks))
 		mvc.m.unstable_rocks = set()
 
+		events = []
+
 		for rock in current_unstable:
 			deps = sorted(mvc.m.get_deps(rock))
 			l, b, r, ls, rs = deps
 			left, bottom, right, lside, rside = mvc.v.get_all(deps)
 			if bottom == TileType.EMPTY:
 				e = RockEvent(rock, b)
-				e.apply()
+				events.append(e)
 			elif bottom == TileType.ROCK and rside == TileType.EMPTY and right == TileType.EMPTY:
 				e = RockEvent(rock, r)
-				e.apply()
+				events.append(e)
 			elif bottom == TileType.ROCK and lside == TileType.EMPTY and left == TileType.EMPTY:	
 				e = RockEvent(rock, l)
-				e.apply()
+				events.append(e)
 			elif bottom == TileType.LAMBDA and rside == TileType.EMPTY and right == TileType.EMPTY:
 				e = RockEvent(rock, r)
-				e.apply()
+				events.append(e)
+
+		for e in events: e.apply()
+
+		mvc.m.next_turn()
 
 	def check_if_dead(self):
 		robot = mvc.m.robot + w()
 		for r in mvc.m.unstable_rocks:
 			if robot == r:
 				return True
+		if mvc.m.wetness > mvc.m.waterproof:
+			return True
 		return False
 
 	def process(self, move):
+		res = ResultType.OK
+
 		if move == MoveType.WAIT:
 			self.update()
-			return
+			is_dead = self.check_if_dead()
+			if is_dead:
+				res = ResultType.DEAD
+			return res
 
 		if move == MoveType.ABORT:
-			return
-
-		res = ResultType.OK
+			return None
 
 		old = mvc.m.robot
 		old_x, old_y = tup(old)
@@ -184,6 +195,7 @@ class Controller():
 			res = ResultType.CANNOT_MOVE
 
 		self.update()
+
 		is_dead = self.check_if_dead()
 		if is_dead:
 			res = ResultType.DEAD
@@ -191,14 +203,17 @@ class Controller():
 		return res
 
 class Model():
-	def __init__(self):
+	def __init__(self, raw_footer):
 		self.robot = num(0,0)
-		self.lambdas = set()
+		self.active_lambdas = set()
+		self.picked_lambdas = set()
 		self.unstable_rocks = set()
 		self.lift = num(0,0)
 		self.lift_open = False
 
 		self.updates = defaultdict(set)
+
+		self.turn = 0
 
 		for y in range(h()):
 			for x in range(w()):
@@ -215,14 +230,58 @@ class Model():
 				elif e == TileType.OLL:
 					self.add_open_lift(n)
 
+		footer = {}
+		for l in raw_footer:
+			l = l.split(" ")
+			footer[l[0]] = int(l[1])
+
+		self.waterproof = 10 if "Waterproof" not in footer else footer["Waterproof"]
+		self.flooding = 0 if "Flooding" not in footer else footer["Flooding"]
+		self.water = 0 if "Water" not in footer else footer["Water"]
+		self.water = self.water - 1
+
+		self.wetness = 0
+
+	def update_flood(self):
+		if self.flooding == 0:
+			return
+
+		if self.turn % self.flooding == 0:
+			self.water = self.water + 1
+		x, y = tup(self.robot)
+		if y <= self.water:
+			self.wetness = self.wetness + 1
+		else:
+			self.wetness = 0
+
+	def next_turn(self):
+		self.turn = self.turn + 1
+		self.update_flood()
+
+	def current_score(self):
+		return 0 - self.turn + 25 * len(self.picked_lambdas)
+
+	def score_on_abort(self):
+		return 0 - self.turn + 50 * len(self.picked_lambdas)
+
+	def score_on_lift(self):
+		return 0 - self.turn + 75 * len(self.picked_lambdas)
+
 	def add_robot(self, n):
 		self.robot = n
 
 	def move_robot(self, old, new):
 		self.robot = new
+		new_tile = mvc.v.get(new)
+		if new_tile == TileType.LAMBDA:
+			self.pick_lambda(new)
 
 	def add_lambda(self, n):
-		self.lambdas.add(n)
+		self.active_lambdas.add(n)
+
+	def pick_lambda(self, n):
+		if n in self.active_lambdas: self.active_lambdas.remove(n)
+		self.picked_lambdas.add(n)
 
 	def add_rock(self, n):
 		self.unstable_rocks.add(n)
@@ -334,7 +393,16 @@ class View():
 
 class MapReader():
 	def __init__(self, input, output):
-		map_lines = input.readlines()
+		lines = input.readlines()
+
+		map_lines = []
+		footer = []
+		is_footer = False
+		for l in lines:
+			if l != "\n":
+				if not is_footer: map_lines.append(l)
+				else: footer.append(l)
+			else: is_footer = True
 
 		map_lines = [s.strip() for s in map_lines]
 		width = max([len(s) for s in map_lines])
@@ -344,6 +412,7 @@ class MapReader():
 		self.width = width
 		self.height = height
 		self.raw_map = map_lines
+		self.raw_footer = footer
 
 	def get_view(self):
 		return View(self.width, self.height, list(reversed(self.raw_map)))

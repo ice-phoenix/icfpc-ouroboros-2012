@@ -18,7 +18,7 @@ def main():
 
 	MVC.Link(None, v, None)
 
-	m = M()
+	m = M(map_reader.raw_footer)
 	MVC.Link(m, v, None)
 
 	c = C()
@@ -42,6 +42,9 @@ def main():
 			continue
 		print c.process(a)
 		print v
+		print m.current_score()
+		print m.score_on_abort()
+		print m.score_on_lift()
 
 if __name__ == "__main__":
 	main()
