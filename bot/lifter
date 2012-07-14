@@ -1,0 +1,47 @@
+#!/usr/bin/env python2
+
+import sys
+import time
+
+from map import Controller as C
+from map import MapReader as MR
+from map import MoveType as MT
+from map import MVC
+from map import Model as M
+from map import View as V
+
+def main():
+	f = open(sys.argv[1], "rt")
+	map_reader = MR(f, sys.stdout)
+	v = map_reader.get_view()
+	print v
+
+	MVC.Link(None, v, None)
+
+	m = M()
+	MVC.Link(m, v, None)
+
+	c = C()
+	MVC.Link(m, v, c)
+
+	while(1):
+		ch = sys.stdin.read(1)
+		if ch == 'j':
+			a = MT.LEFT
+		elif ch == 'k':
+			a = MT.DOWN
+		elif ch == 'l':
+			a = MT.RIGHT
+		elif ch == 'i':
+			a = MT.UP
+		elif ch == 'w':
+			a = MT.WAIT
+		elif ch == 'a':
+			a = MT.ABORT
+		else:
+			continue
+		print c.process(a)
+		print v
+
+if __name__ == "__main__":
+	main()
