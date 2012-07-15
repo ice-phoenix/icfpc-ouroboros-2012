@@ -94,6 +94,7 @@ class RockEvent():
 		mvc.v.set(self.old, TileType.EMPTY)
 		mvc.m.move_rock(self.old, self.new)
 		mvc.v.set(self.new, TileType.ROCK)
+		mvc.m.moved_rocks.add(self.new)
 
 
 
@@ -147,7 +148,7 @@ class Controller():
 
 	def check_if_dead(self):
 		robot = mvc.m.robot + w()
-		for r in mvc.m.unstable_rocks:
+		for r in mvc.m.moved_rocks:
 			if robot == r:
 				return True
 		if mvc.m.wetness > mvc.m.waterproof:
@@ -208,6 +209,7 @@ class Model():
 		self.active_lambdas = set()
 		self.picked_lambdas = set()
 		self.unstable_rocks = set()
+		self.moved_rocks = set()
 		self.lift = num(0,0)
 		self.lift_open = False
 
@@ -256,6 +258,7 @@ class Model():
 
 	def next_turn(self):
 		self.turn = self.turn + 1
+		self.moved_rocks = set()
 		self.update_flood()
 
 	def current_score(self):
