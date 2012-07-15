@@ -53,6 +53,70 @@ class TileType():
 	LAMBDA = ord('\\')
 	OLL = ord('O')
 	EMPTY = ord(' ')
+	TRAMP_A = ord('A')
+	TRAMP_B = ord('B')
+	TRAMP_C = ord('C')
+	TRAMP_D = ord('D')
+	TRAMP_E = ord('E')
+	TRAMP_F = ord('F')
+	TRAMP_G = ord('G')
+	TRAMP_H = ord('H')
+	TRAMP_I = ord('I')
+	TARG_1 = ord('1')
+	TARG_2 = ord('2')
+	TARG_3 = ord('3')
+	TARG_4 = ord('4')
+	TARG_5 = ord('5')
+	TARG_6 = ord('6')
+	TARG_7 = ord('7')
+	TARG_8 = ord('8')
+	TARG_9 = ord('9')
+
+def to_tramp(e):
+	if e == "A":    return TileType.TRAMP_A
+	elif e == "B":  return TileType.TRAMP_B
+	elif e == "C":  return TileType.TRAMP_C
+	elif e == "D":  return TileType.TRAMP_D
+	elif e == "E":  return TileType.TRAMP_E
+	elif e == "F":  return TileType.TRAMP_F
+	elif e == "G":  return TileType.TRAMP_G
+	elif e == "H":  return TileType.TRAMP_H
+	elif e == "I":  return TileType.TRAMP_I
+	else: return None
+
+def to_targ(e):
+	if e == "1":    return TileType.TARG_1
+	elif e == "2":  return TileType.TARG_2
+	elif e == "3":  return TileType.TARG_3
+	elif e == "4":  return TileType.TARG_4
+	elif e == "5":  return TileType.TARG_5
+	elif e == "6":  return TileType.TARG_6
+	elif e == "7":  return TileType.TARG_7
+	elif e == "8":  return TileType.TARG_8
+	elif e == "9":  return TileType.TARG_9
+	else: return None
+
+def is_tramp(t):
+	return t == TileType.TRAMP_A or \
+	       t == TileType.TRAMP_B or \
+	       t == TileType.TRAMP_C or \
+	       t == TileType.TRAMP_D or \
+	       t == TileType.TRAMP_E or \
+	       t == TileType.TRAMP_F or \
+	       t == TileType.TRAMP_G or \
+	       t == TileType.TRAMP_H or \
+	       t == TileType.TRAMP_I
+
+def is_targ(t):
+	return t == TileType.TARG_1 or \
+	       t == TileType.TARG_2 or \
+	       t == TileType.TARG_3 or \
+	       t == TileType.TARG_4 or \
+	       t == TileType.TARG_5 or \
+	       t == TileType.TARG_6 or \
+	       t == TileType.TARG_7 or \
+	       t == TileType.TARG_8 or \
+	       t == TileType.TARG_9
 
 
 
@@ -144,8 +208,6 @@ class Controller():
 
 		for e in events: e.apply()
 
-		mvc.m.next_turn()
-
 	def check_if_dead(self):
 		robot = mvc.m.robot + w()
 		for r in mvc.m.moved_rocks:
@@ -163,6 +225,7 @@ class Controller():
 			is_dead = self.check_if_dead()
 			if is_dead:
 				res = ResultType.DEAD
+			mvc.m.next_turn()
 			return res
 
 		if move == MoveType.ABORT:
@@ -200,7 +263,7 @@ class Controller():
 		is_dead = self.check_if_dead()
 		if is_dead:
 			res = ResultType.DEAD
-
+		mvc.m.next_turn()
 		return res
 
 class Model():
@@ -217,6 +280,9 @@ class Model():
 
 		self.turn = 0
 
+		tramps = {}
+		targs = {}
+
 		for y in range(h()):
 			for x in range(w()):
 				n = num(x,y)
@@ -231,15 +297,33 @@ class Model():
 					self.add_lambda(n)
 				elif e == TileType.OLL:
 					self.add_open_lift(n)
+				elif is_tramp(e):
+					tramps[e] = n
+				elif is_targ(e):
+					targ[e] = n
+
+		self.waterproof = 10
+		self.flooding = 0
+		self.water = 0
+
+		self.trampolines = {}
+		self.targets = defaultdict(set)
 
 		footer = {}
 		for l in raw_footer:
 			l = l.split(" ")
-			footer[l[0]] = int(l[1])
+			if l[0] == "Waterproof":
+				self.waterproof = int(l[1])
+			elif l[0] == "Flooding":
+				self.flooding = int(l[1])
+			elif l[0] == "Water":
+				self.water = int(l[1])
+			elif l[0] == "Trampoline":
+				tramp = tramps[str(l[1])]
+				targ = targs[str(l[3])]
+				self.trampolines[tramp] = targ
+				self.targets[targ].add(tramp)
 
-		self.waterproof = 10 if "Waterproof" not in footer else footer["Waterproof"]
-		self.flooding = 0 if "Flooding" not in footer else footer["Flooding"]
-		self.water = 0 if "Water" not in footer else footer["Water"]
 		self.water = self.water - 1
 
 		self.wetness = 0
@@ -370,6 +454,10 @@ class View():
 				elif e == "\\": parsed_map[n] = TileType.LAMBDA
 				elif e == "O":  parsed_map[n] = TileType.OLL
 				elif e == " ":  parsed_map[n] = TileType.EMPTY
+				elif to_tramp(e) is not None: 
+					parsed_map[n] = to_tramp(e)
+				elif to_targ(e) is not None:
+					parsed_map[n] = to_targ(e)
 				else:           raise ex.BotException("Unknown symbol <" + e + "> in map")
 
 		self.map = parsed_map
