@@ -138,6 +138,15 @@ class MoveEvent():
 		self.moved_rock = rock is not None
 
 	def apply(self):
+		if self.new in mvc.m.trampolines:
+			self.new = mvc.m.trampolines[self.new]
+			used_tramps = mvc.m.targets[self.new]
+			for t in used_tramps:
+				mvc.m.touch(t)
+				mvc.v.set(t, TileType.EMPTY)
+				mvc.m.trampolines.pop(t)
+			mvc.m.targets.pop(self.new)
+
 		mvc.m.move_robot(self.old, self.new)
 		mvc.v.set(self.new, TileType.ROBOT)
 		mvc.m.touch(self.old)
@@ -169,7 +178,8 @@ def is_move_possible(dir, old, new, rock):
 	if old_tile == TileType.ROBOT:
 		if new_tile == TileType.EMPTY or \
 			new_tile == TileType.EARTH or \
-			new_tile == TileType.LAMBDA:
+			new_tile == TileType.LAMBDA or \
+			is_tramp(new_tile):
 			return 0
 		if new_tile == TileType.ROCK and \
 			rock_tile == TileType.EMPTY and \
@@ -300,7 +310,7 @@ class Model():
 				elif is_tramp(e):
 					tramps[e] = n
 				elif is_targ(e):
-					targ[e] = n
+					targs[e] = n
 
 		self.waterproof = 10
 		self.flooding = 0
@@ -319,8 +329,8 @@ class Model():
 			elif l[0] == "Water":
 				self.water = int(l[1])
 			elif l[0] == "Trampoline":
-				tramp = tramps[str(l[1])]
-				targ = targs[str(l[3])]
+				tramp = tramps[to_tramp(str(l[1]))]
+				targ = targs[to_targ(str(int(l[3])))]
 				self.trampolines[tramp] = targ
 				self.targets[targ].add(tramp)
 
@@ -425,9 +435,12 @@ class Model():
 		res = "Size: (" + str(converter.width) + "," + str(converter.height) + ")\n\n"
 		res = res + "R: " + str(tup(self.robot)) + "\n\n"
 		res = res + ("O: " if self.lift_open else "C: ") + str(self.lift) + "\n\n"
-		res = res + "L: " + str([tup(e) for e in self.lambdas]) + "\n\n"
+		res = res + "AL: " + str([tup(e) for e in self.active_lambdas]) + "\n\n"
+		res = res + "PL: " + str([tup(e) for e in self.picked_lambdas]) + "\n\n"
 		res = res + "UR: " + str([tup(e) for e in self.unstable_rocks]) + "\n\n"
-		res = res + "DD: " + str([str(tup(k)) + "->" + str([tup(e) for e in v]) for k, v in self.updates.items()])
+		res = res + "DD: " + str([str(tup(k)) + "->" + str([tup(e) for e in v]) for k, v in self.updates.items()]) + "\n\n"
+		res = res + "TR: " + str([str(tup(k)) + "->" + str(tup(v)) for k, v in self.trampolines.items()]) + "\n\n"
+		res = res + "TA: " + str([str(tup(k)) + "->" + str([tup(e) for e in v]) for k, v in self.targets.items()]) + "\n\n"
 		return res
 
 
@@ -477,7 +490,10 @@ class View():
 			for x in range(self.width):
 				n = num(x,y)
 				res = res + chr(self.map[n])
-			res = res + "\n"
+			if y == (mvc.m.water if mvc.m is not None else -1):
+				res = res + "*\n"
+			else:
+				res = res + "\n"
 		return res
 
 
