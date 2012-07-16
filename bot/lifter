@@ -9,7 +9,9 @@ from map import MoveType as MT
 from map import MVC
 from map import Model as M
 from map import View as V
-from greedy import Greedy as G
+from greedy import Greedy
+from lazy import Lazy
+from quitter import Quitter
 
 def main():
 	f = open(sys.argv[1], "rt")
@@ -27,7 +29,9 @@ def main():
 	MVC.Link(m, v, c)
 
     # strategy init
-	greedy = G()
+	greedy = Greedy()
+ 	lazy   = Lazy()
+ 	quitter= Quitter()
 
 	while(1):
 		ch = sys.stdin.read(1)
@@ -45,6 +49,10 @@ def main():
 			a = MT.ABORT
 		elif ch == '1': # execute greedy strategy
 			a = greedy.next_move(m, v)
+		elif ch == '2':
+			a = lazy.next_move(m, v)
+		elif ch == '3':
+			a = quitter.next_move(m, v)
 		else:
 			continue
 		print c.process(a)

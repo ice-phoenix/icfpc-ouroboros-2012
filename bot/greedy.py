@@ -17,7 +17,7 @@ class Greedy():
         self.m = m
         self.v = v
 
-        adj_tiles = self.get_adjacent_tiles(m)
+        adj_tiles = self.get_adjacent_tiles()
         lambdas = self.get_all_lambdas()
        
         best_dist = sys.maxint + 1
