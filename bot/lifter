@@ -12,6 +12,7 @@ from map import View as V
 from greedy import Greedy
 from lazy import Lazy
 from quitter import Quitter
+from swimmer import Swimmer
 
 def main():
 	f = open(sys.argv[1], "rt")
@@ -28,10 +29,11 @@ def main():
 	c = C()
 	MVC.Link(m, v, c)
 
-    # strategy init
-	greedy = Greedy()
- 	lazy   = Lazy()
- 	quitter= Quitter()
+    # strategy bots
+	greedy  = Greedy() 
+ 	lazy    = Lazy()
+ 	quitter = Quitter()
+ 	swimmer = Swimmer()
 
 	while(1):
 		ch = sys.stdin.read(1)
@@ -53,6 +55,8 @@ def main():
 			a = lazy.next_move(m, v)
 		elif ch == '3':
 			a = quitter.next_move(m, v)
+		elif ch == '4':
+			a = swimmer.next_move(m, v)
 		else:
 			continue
 		print c.process(a)

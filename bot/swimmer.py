@@ -4,6 +4,7 @@ from map import MoveType as MT
 from map import w, h, num, tup    #don't initialize your own instance of converter!
 from map import TileType
 
+# bot with aquaphobia
 
 class BotState():
     OBLIVIOUS = 0
@@ -83,9 +84,10 @@ class Swimmer():
         return above
 
     # find shortest path to get to surface
+    # plagiarized from http://code.activestate.com/recipes/119466/
     def dijkstra(self, start, end):
        q = [(0, start, ())]  # Heap of (cost, path_head, path_rest).
-       visited = set()       # Visited vertices.
+       visited = set()       # Visited tiles.
        while True:
           (cost, tile, path) = heapq.heappop(q)
           if tile not in visited:
@@ -93,7 +95,7 @@ class Swimmer():
              if tile == end:
                 return list(self.flatten(path))[::-1] + [tile]
              path = (tile, path)
-             for (tile2, cost2) in self.get_adjacent_tiles_cost(tile): # change this; you have flat array not graph
+             for (tile2, cost2) in self.get_adjacent_tiles_cost(tile):
                 if tile2 not in visited:
                    heapq.heappush(q, (cost + cost2, tile2, path))
 
