@@ -9,6 +9,7 @@ from map import MoveType as MT
 from map import MVC
 from map import Model as M
 from map import View as V
+from greedy import Greedy as G
 
 def main():
 	f = open(sys.argv[1], "rt")
@@ -19,10 +20,14 @@ def main():
 	MVC.Link(None, v, None)
 
 	m = M(map_reader.raw_footer)
+
 	MVC.Link(m, v, None)
 
 	c = C()
 	MVC.Link(m, v, c)
+
+    # strategy init
+	greedy = G()
 
 	while(1):
 		ch = sys.stdin.read(1)
@@ -38,6 +43,8 @@ def main():
 			a = MT.WAIT
 		elif ch == 'a':
 			a = MT.ABORT
+		elif ch == '1': # execute greedy strategy
+			a = greedy.next_move(m, v)
 		else:
 			continue
 		print c.process(a)
