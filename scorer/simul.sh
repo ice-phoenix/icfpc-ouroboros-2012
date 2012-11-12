@@ -6,7 +6,7 @@ for solver in `find solvers -type f -executable`; do
 
     echo "Testing $solver:"
 
-    for map in `find maps -type f`; do
+    for map in `find maps -type f -name "map*"`; do
 
 	echo "Map: $map"
 
