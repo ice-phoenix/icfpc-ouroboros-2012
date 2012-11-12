@@ -14,7 +14,7 @@ for solver in `find solvers -type f -executable`; do
 
         echo -e "\e[00;31mMap: $map\e[00m"
 
-        timeout -s INT -k 10 140 "$solver" < "$map" &> path
+        timeout -s INT -k 10 140 "$solver" < "$map" 1> path 2> /dev/null
         res=$?
         if [ $res -eq 0 ]; then
             echo -n "OK! "
@@ -28,7 +28,6 @@ for solver in `find solvers -type f -executable`; do
         else
             echo "FAILED!"
             msg+="FAILED! "
-            continue
         fi
         echo "Simulating..."
         score=`$simul $map path`

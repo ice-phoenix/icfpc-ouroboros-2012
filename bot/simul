@@ -40,7 +40,7 @@ def main():
         elif ch == 'A':
             a = MT.ABORT
         else:
-            a = MT.WAIT
+            continue
         res = c.process(a)
         if res == RT.OK:
             continue
@@ -55,7 +55,7 @@ def main():
         print m.score_on_lift()
         return
     else:
-        print m.current_score()
+        print m.score_on_abort()
         return
 
 
