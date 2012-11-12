@@ -1,3 +1,5 @@
+#!/usr/bin/env python2
+
 from map import MoveType as MT
 
 # always wait

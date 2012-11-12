@@ -1,8 +1,11 @@
+#!/usr/bin/env python2
+
 import heapq
 
 from map import MoveType as MT
-from map import w, h, num, tup    #don't initialize your own instance of converter!
 from map import TileType
+
+from map import w, h, num, tup    #don't initialize your own instance of converter!
 
 # bot with aquaphobia
 
@@ -11,7 +14,6 @@ class BotState():
     SWIMMING  = 1
 
 class Swimmer():
-
     def __init__(self):
         self.state = BotState.OBLIVIOUS
         self.path  = list()
@@ -23,7 +25,7 @@ class Swimmer():
 
         (rx, ry) = tup(self.m.robot)
 
-        if not self.path:  # if path is empty, reset to oblivious state
+        if not self.path: # if path is empty, reset to oblivious state
             self.state = BotState.OBLIVIOUS
 
         if self.m.water >= ry:
@@ -31,7 +33,6 @@ class Swimmer():
                 return MT.ABORT                     # abort before death
             elif self.state != BotState.SWIMMING:
                 self.find_escape_path()
-
                 if not self.path:                   # abort if found nothing
                     return MT.ABORT
                 else:
@@ -46,9 +47,8 @@ class Swimmer():
 
     # convert adjacent tile to movement command
     def to_move(self, tile):
-        
         (tx, ty) = tup(tile)
-        ( x,  y) = tup(self.m.robot)
+        (x, y) = tup(self.m.robot)
 
         if tx < x:
             return MT.LEFT
@@ -84,10 +84,11 @@ class Swimmer():
         return above
 
     # find shortest path to get to surface
+    #
     # plagiarized from http://code.activestate.com/recipes/119466/
     def dijkstra(self, start, end):
-       q = [(0, start, ())]  # Heap of (cost, path_head, path_rest).
-       visited = set()       # Visited tiles.
+       q = [(0, start, ())]  # heap of (cost, path_head, path_rest)
+       visited = set()       # visited tiles
        while True:
           (cost, tile, path) = heapq.heappop(q)
           if tile not in visited:
@@ -99,13 +100,12 @@ class Swimmer():
                 if tile2 not in visited:
                    heapq.heappush(q, (cost + cost2, tile2, path))
 
-    def flatten(self, L):       # Flatten linked list of form [0,[1,[2,[]]]]
+    def flatten(self, L): # flatten linked list of form [0,[1,[2,[...]]]]
        while len(L) > 0:
           yield L[0]
           L = L[1]
 
     def get_adjacent_tiles_cost(self, tile):
-
        adj_set = set()
 
        # above
@@ -128,8 +128,8 @@ class Swimmer():
 
     def walkable(self, tile):
         (x, y) = tup(tile)
-        return True if x < w() and x >= 0 and y < h() and y >= 0 and\
-                       self.v.get(num(x, y)) != TileType.WALL    and\
-                       self.v.get(num(x, y)) != TileType.ROCK    and\
-                       self.v.get(num(x, y)) != TileType.CLL        \
+        return True if x < w() and x >= 0 and y < h() and y >= 0 and \
+                       self.v.get(num(x, y)) != TileType.WALL    and \
+                       self.v.get(num(x, y)) != TileType.ROCK    and \
+                       self.v.get(num(x, y)) != TileType.CLL         \
                     else False
