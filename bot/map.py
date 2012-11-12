@@ -126,7 +126,7 @@ class MoveType():
 
 
 class ResultType():
-    OK, CANNOT_MOVE, DEAD = range(3)
+    OK, ABORTED, CANNOT_MOVE, DEAD = range(4)
 
 
 
@@ -179,6 +179,7 @@ def is_move_possible(dir, old, new, rock):
         if new_tile == TileType.EMPTY or \
             new_tile == TileType.EARTH or \
             new_tile == TileType.LAMBDA or \
+            new_tile == TileType.OLL or \
             is_tramp(new_tile):
             return 0
         if new_tile == TileType.ROCK and \
@@ -239,7 +240,7 @@ class Controller():
             return res
 
         if move == MoveType.ABORT:
-            return None
+            return ResultType.ABORTED
 
         old = mvc.m.robot
         old_x, old_y = tup(old)
@@ -342,18 +343,30 @@ class Model():
         if self.flooding == 0:
             return
 
-        if self.turn % self.flooding == 0:
-            self.water = self.water + 1
         x, y = tup(self.robot)
         if y <= self.water:
             self.wetness = self.wetness + 1
         else:
             self.wetness = 0
 
+        if self.turn % self.flooding == 0:
+            self.water = self.water + 1
+
+    def check_is_done(self):
+        if len(self.active_lambdas) == 0:
+            self.add_open_lift(self.lift)
+            mvc.v.set(self.lift, TileType.OLL)
+
+    def has_reached_lift(self):
+        return True if len(self.active_lambdas) == 0 and \
+                    self.robot == self.lift \
+            else False
+
     def next_turn(self):
         self.turn = self.turn + 1
         self.moved_rocks = set()
         self.update_flood()
+        self.check_is_done()
 
     def current_score(self):
         return 0 - self.turn + 25 * len(self.picked_lambdas)
