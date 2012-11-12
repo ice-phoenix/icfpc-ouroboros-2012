@@ -48,7 +48,7 @@ def main():
             print m.score_on_abort()
             return
         elif res == RT.DEAD:
-            print 0
+            print str(m.current_score()) + " (DIED!)"
             return
 
     if m.has_reached_lift():
