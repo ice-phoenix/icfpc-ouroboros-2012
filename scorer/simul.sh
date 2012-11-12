@@ -2,30 +2,47 @@
 
 simul="../bot/simul"
 
+msg=""
+
 for solver in `find solvers -type f -executable`; do
 
-    echo "Testing $solver:"
+    echo -e "\e[00;36mTesting $solver:\e[00m"
+    msg+="$solver "
+    total=0
 
     for map in `find maps -type f -name "map*"`; do
 
-	echo "Map: $map"
+        echo -e "\e[00;31mMap: $map\e[00m"
 
         timeout -s INT -k 10 140 "$solver" < "$map" &> path
         res=$?
         if [ $res -eq 0 ]; then
-    	    echo -n "OK! "
-    	    cat path
-    	elif [ $res -eq 124 ]; then
-    	    echo -n "TIMED OUT! "
-    	    cat path
-    	elif [ $res -eq 137 ]; then
-    	    echo -n "KILLED! "
-    	    cat path
-    	else
-    	    echo "FAILED!"
-    	    continue
-    	fi
-    	echo "Simulating..."
-    	$simul $map path
+            echo -n "OK! "
+            cat path
+        elif [ $res -eq 124 ]; then
+            echo -n "TIMED OUT! "
+            cat path
+        elif [ $res -eq 137 ]; then
+            echo -n "KILLED! "
+            cat path
+        else
+            echo "FAILED!"
+            msg+="FAILED! "
+            continue
+        fi
+        echo "Simulating..."
+        score=`$simul $map path`
+
+        set -- $score
+
+        echo "$score"
+        msg+="$score "
+        total=$(($total + $1))
     done
+
+    msg+="$total"
+    msg+="\n"
+
 done
+
+echo -e "\n$msg"
