@@ -24,7 +24,7 @@ def main():
     c = C()
     MVC.Link(m, v, c)
 
-    moves = open(sys.argv[2], "rt").readline()
+    moves = open(sys.argv[2], "rt").read()
 
     for ch in moves:
         if ch == 'L':
@@ -46,6 +46,9 @@ def main():
             continue
         elif res == RT.ABORTED:
             print m.score_on_abort()
+            return
+        elif res == RT.COMPLETED:
+            print m.score_on_lift()
             return
         elif res == RT.DEAD:
             print str(m.current_score()) + " (DIED!)"

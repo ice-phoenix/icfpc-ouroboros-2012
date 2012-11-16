@@ -126,7 +126,7 @@ class MoveType():
 
 
 class ResultType():
-    OK, ABORTED, CANNOT_MOVE, DEAD = range(4)
+    OK, COMPLETED, ABORTED, CANNOT_MOVE, DEAD = range(5)
 
 
 
@@ -233,10 +233,10 @@ class Controller():
 
         if move == MoveType.WAIT:
             self.update()
+            mvc.m.next_turn()
             is_dead = self.check_if_dead()
             if is_dead:
                 res = ResultType.DEAD
-            mvc.m.next_turn()
             return res
 
         if move == MoveType.ABORT:
@@ -270,11 +270,14 @@ class Controller():
             res = ResultType.CANNOT_MOVE
 
         self.update()
+        mvc.m.next_turn()
+
+        if mvc.m.has_reached_lift():
+            return ResultType.COMPLETED
 
         is_dead = self.check_if_dead()
         if is_dead:
             res = ResultType.DEAD
-        mvc.m.next_turn()
         return res
 
 class Model():
