@@ -39,8 +39,7 @@ for solver in `find solvers -type f -executable`; do
         total=$(($total + $1))
     done
 
-    msg+="$total"
-    msg+="\n"
+    msg+="$total\n"
 
 done
 

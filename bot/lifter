@@ -1,19 +1,18 @@
 #!/usr/bin/env python2
 
 import sys
-import time
 
 from map import Controller as C
 from map import MapReader as MR
 from map import Model as M
 from map import MoveType as MT
 from map import MVC
-from map import View as V
 
 from greedy import Greedy
 from lazy import Lazy
 from quitter import Quitter
 from swimmer import Swimmer
+
 
 def main():
     f = open(sys.argv[1], "rt")
@@ -29,14 +28,14 @@ def main():
     MVC.Link(m, v, c)
 
     # strategy bots
-    greedy  = Greedy() 
-    lazy    = Lazy()
-    quitter = Quitter()
-    swimmer = Swimmer()
+    greedy = Greedy(m, v)
+    lazy = Lazy(m, v)
+    quitter = Quitter(m, v)
+    swimmer = Swimmer(m, v)
 
     print v
 
-    while(1):
+    while True:
         ch = sys.stdin.read(1)
         if ch == 'j':
             a = MT.LEFT
@@ -51,13 +50,13 @@ def main():
         elif ch == 'a':
             a = MT.ABORT
         elif ch == '1':
-            a = greedy.next_move(m, v)
+            a = greedy.next_move()
         elif ch == '2':
-            a = lazy.next_move(m, v)
+            a = lazy.next_move()
         elif ch == '3':
-            a = quitter.next_move(m, v)
+            a = quitter.next_move()
         elif ch == '4':
-            a = swimmer.next_move(m, v)
+            a = swimmer.next_move()
         else:
             continue
         print c.process(a)
@@ -65,6 +64,7 @@ def main():
         print m.current_score()
         print m.score_on_abort()
         print m.score_on_lift()
+
 
 if __name__ == "__main__":
     main()

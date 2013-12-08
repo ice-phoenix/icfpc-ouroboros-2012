@@ -3,49 +3,54 @@
 import heapq
 
 from map import MoveType as MT
-from map import TileType
+from map import TileType as TT
 
-from map import w, h, num, tup    #don't initialize your own instance of converter!
+from map import w, h, num, tup  # don't initialize your own converter instance!!!
 
-# bot with aquaphobia
 
+# bot with aqua phobia
 class BotState():
     OBLIVIOUS = 0
-    SWIMMING  = 1
+    SWIMMING = 1
+
 
 class Swimmer():
-    def __init__(self):
-        self.state = BotState.OBLIVIOUS
-        self.path  = list()
-        pass
-
-    def next_move(self, m, v):
+    def __init__(self, m, v):
         self.m = m
         self.v = v
+        self.state = BotState.OBLIVIOUS
+        self.path = list()
+
+    # gets the next bot move
+    def next_move(self):
 
         (rx, ry) = tup(self.m.robot)
 
-        if not self.path: # if path is empty, reset to oblivious state
+        # if path is empty, go to oblivious state
+        if not self.path:
             self.state = BotState.OBLIVIOUS
 
         if self.m.water >= ry:
-            if self.m.wetness == self.m.waterproof:
-                return MT.ABORT                     # abort before death
+            if self.m.wetness == self.m.waterproof:  # abort before death
+                return MT.ABORT
+
             elif self.state != BotState.SWIMMING:
+                self.state = BotState.SWIMMING
                 self.find_escape_path()
-                if not self.path:                   # abort if found nothing
+                if not self.path:  # abort if found nothing
                     return MT.ABORT
                 else:
-                    self.path.reverse()             # reverse because it's faster to pop list
+                    self.path.reverse()  # reverse path because it's faster to pop list
                     self.path.pop()
-                self.state = BotState.SWIMMING
                 return self.to_move(self.path.pop())
+
             elif self.state == BotState.SWIMMING:
                 return self.to_move(self.path.pop())
+
         else:
             return MT.WAIT
 
-    # convert adjacent tile to movement command
+    # converts adjacent tile to a move command
     def to_move(self, tile):
         (tx, ty) = tup(tile)
         (x, y) = tup(self.m.robot)
@@ -59,23 +64,24 @@ class Swimmer():
         if ty > y:
             return MT.UP
 
+    # finds the best escape path out of water
     def find_escape_path(self):
         best_path = list()
 
         for surface in self.above_water():
             p = self.dijkstra(self.m.robot, surface)
-            if p and len(p) < len(best_path) or not(best_path):
+            if p and len(p) < len(best_path) or not best_path:
                 best_path = p
 
         self.path = best_path
 
-    # get all tiles above water
+    # gets all tiles just above water
     def above_water(self):
         above = set()
         y = self.m.water + 1
         
         if y >= h():
-            return None
+            return above
 
         for x in range(w()):
             t = num(x, y)
@@ -83,53 +89,54 @@ class Swimmer():
                 above.add(t)
         return above
 
-    # find shortest path to get to surface
-    #
+    # finds shortest path to get to the surface
     # plagiarized from http://code.activestate.com/recipes/119466/
     def dijkstra(self, start, end):
-       q = [(0, start, ())]  # heap of (cost, path_head, path_rest)
-       visited = set()       # visited tiles
-       while True:
-          (cost, tile, path) = heapq.heappop(q)
-          if tile not in visited:
-             visited.add(tile)
-             if tile == end:
-                return list(self.flatten(path))[::-1] + [tile]
-             path = (tile, path)
-             for (tile2, cost2) in self.get_adjacent_tiles_cost(tile):
-                if tile2 not in visited:
-                   heapq.heappush(q, (cost + cost2, tile2, path))
+        q = [(0, start, ())]  # a heap of (cost, path_head, path_rest)
+        visited = set()       # visited tiles
+        while True:
+            (cost, tile, path) = heapq.heappop(q)
+            if tile not in visited:
+                visited.add(tile)
+                if tile == end:
+                    return list(self.flatten(path))[::-1] + [tile]
+                path = (tile, path)
+                for (tile2, cost2) in self.get_adjacent_tiles_cost(tile):
+                    if tile2 not in visited:
+                        heapq.heappush(q, (cost + cost2, tile2, path))
 
-    def flatten(self, L): # flatten linked list of form [0,[1,[2,[...]]]]
-       while len(L) > 0:
-          yield L[0]
-          L = L[1]
+    # flattens linked list of form [0,[1,[2,[...]]]]
+    @staticmethod
+    def flatten(l):
+        while len(l) > 0:
+            yield l[0]
+            l = l[1]
 
+    # gets adjacent tiles with water-avoidance costs
     def get_adjacent_tiles_cost(self, tile):
-       adj_set = set()
+        adj_set = set()
 
-       # above
-       if self.walkable(tile - w()):
-           adj_set.add((tile - w(), 1))
+        # above
+        if self.walkable(tile - w()):
+            adj_set.add((tile - w(), 1))  # want to go up
+        # below
+        if self.walkable(tile + w()):
+            adj_set.add((tile + w(), 4))  # don't want to go under
+        # left
+        if self.walkable(tile - 1):
+            adj_set.add((tile - 1, 2))    # don't care about side steps
+        # right
+        if self.walkable(tile + 1):
+            adj_set.add((tile + 1, 2))    # don't care about side steps
 
-       # below
-       if self.walkable(tile + w()):
-           adj_set.add((tile + w(), 4))
+        return adj_set
 
-       # left
-       if self.walkable(tile - 1):
-           adj_set.add((tile - 1, 2))
-
-       # right
-       if self.walkable(tile + 1):
-           adj_set.add((tile + 1, 2))
-
-       return adj_set
-
+    # checks if tile is walkable
     def walkable(self, tile):
         (x, y) = tup(tile)
-        return True if x < w() and x >= 0 and y < h() and y >= 0 and \
-                       self.v.get(num(x, y)) != TileType.WALL    and \
-                       self.v.get(num(x, y)) != TileType.ROCK    and \
-                       self.v.get(num(x, y)) != TileType.CLL         \
-                    else False
+        tile_type = self.v.get(tile)
+        return 0 <= x < w() and \
+            0 <= y < h() and \
+            tile_type != TT.WALL and \
+            tile_type != TT.ROCK and \
+            tile_type != TT.CLL

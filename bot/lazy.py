@@ -2,11 +2,12 @@
 
 from map import MoveType as MT
 
-# always wait
 
+# always wait
 class Lazy():
-    def __init__(self):
+    def __init__(self, m, v):
         pass
 
-    def next_move(self, m, v):
+    @staticmethod
+    def next_move():
         return MT.WAIT

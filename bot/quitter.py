@@ -2,11 +2,12 @@
 
 from map import MoveType as MT
 
-# always abort
 
+# always abort
 class Quitter():
-    def __init__(self):
+    def __init__(self, m, v):
         pass
 
-    def next_move(self, m, v):
+    @staticmethod
+    def next_move():
         return MT.ABORT

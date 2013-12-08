@@ -1,7 +1,6 @@
 #!/usr/bin/env python2
 
 import sys
-import time
 
 from map import Controller as C
 from map import MapReader as MR
@@ -9,7 +8,7 @@ from map import Model as M
 from map import MoveType as MT
 from map import MVC
 from map import ResultType as RT
-from map import View as V
+
 
 def main():
     f = open(sys.argv[1], "rt")
@@ -51,7 +50,7 @@ def main():
             print m.score_on_lift()
             return
         elif res == RT.DEAD:
-            print str(m.current_score()) + " (DIED!)"
+            print "{} (DIED!)" % m.current_score()
             return
 
     if m.has_reached_lift():
@@ -60,7 +59,6 @@ def main():
     else:
         print m.score_on_abort()
         return
-
 
 
 if __name__ == "__main__":
