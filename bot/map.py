@@ -5,6 +5,8 @@ from collections import defaultdict
 import ex
 import numpy as np
 
+
+# MVC like stuff
 class MVC():
     def __init__(self, m, v, c):
         self.m = m
@@ -17,31 +19,39 @@ class MVC():
         mvc = MVC(m, v, c)
 
 
-
 mvc = MVC(None, None, None)
 
 
-
+# Coord <-> Index converter
 class Converter():
     def __init__(self, width, height):
         self.width = width
         self.height = height
 
     def tup(self, e):
-        return (e % self.width, e / self.width)
+        return e % self.width, e / self.width
 
     def num(self, x, y):
         return y * self.width + x
 
 
+converter = Converter(1, 1)
 
-converter = Converter(1,1)
 
-def w(): return converter.width
-def h(): return converter.height
-def num(x, y): return converter.num(x, y)
-def tup(e): return converter.tup(e)
+def w():
+    return converter.width
 
+
+def h():
+    return converter.height
+
+
+def num(x, y):
+    return converter.num(x, y)
+
+
+def tup(e):
+    return converter.tup(e)
 
 
 class TileType():
@@ -72,62 +82,82 @@ class TileType():
     TARG_8 = ord('8')
     TARG_9 = ord('9')
 
+
 def to_tramp(e):
-    if e == "A":    return TileType.TRAMP_A
-    elif e == "B":  return TileType.TRAMP_B
-    elif e == "C":  return TileType.TRAMP_C
-    elif e == "D":  return TileType.TRAMP_D
-    elif e == "E":  return TileType.TRAMP_E
-    elif e == "F":  return TileType.TRAMP_F
-    elif e == "G":  return TileType.TRAMP_G
-    elif e == "H":  return TileType.TRAMP_H
-    elif e == "I":  return TileType.TRAMP_I
-    else: return None
+    if e == "A":
+        return TileType.TRAMP_A
+    elif e == "B":
+        return TileType.TRAMP_B
+    elif e == "C":
+        return TileType.TRAMP_C
+    elif e == "D":
+        return TileType.TRAMP_D
+    elif e == "E":
+        return TileType.TRAMP_E
+    elif e == "F":
+        return TileType.TRAMP_F
+    elif e == "G":
+        return TileType.TRAMP_G
+    elif e == "H":
+        return TileType.TRAMP_H
+    elif e == "I":
+        return TileType.TRAMP_I
+    else:
+        return None
+
 
 def to_targ(e):
-    if e == "1":    return TileType.TARG_1
-    elif e == "2":  return TileType.TARG_2
-    elif e == "3":  return TileType.TARG_3
-    elif e == "4":  return TileType.TARG_4
-    elif e == "5":  return TileType.TARG_5
-    elif e == "6":  return TileType.TARG_6
-    elif e == "7":  return TileType.TARG_7
-    elif e == "8":  return TileType.TARG_8
-    elif e == "9":  return TileType.TARG_9
+    if e == "1":
+        return TileType.TARG_1
+    elif e == "2":
+        return TileType.TARG_2
+    elif e == "3":
+        return TileType.TARG_3
+    elif e == "4":
+        return TileType.TARG_4
+    elif e == "5":
+        return TileType.TARG_5
+    elif e == "6":
+        return TileType.TARG_6
+    elif e == "7":
+        return TileType.TARG_7
+    elif e == "8":
+        return TileType.TARG_8
+    elif e == "9":
+        return TileType.TARG_9
     else: return None
+
 
 def is_tramp(t):
     return t == TileType.TRAMP_A or \
-           t == TileType.TRAMP_B or \
-           t == TileType.TRAMP_C or \
-           t == TileType.TRAMP_D or \
-           t == TileType.TRAMP_E or \
-           t == TileType.TRAMP_F or \
-           t == TileType.TRAMP_G or \
-           t == TileType.TRAMP_H or \
-           t == TileType.TRAMP_I
+        t == TileType.TRAMP_B or \
+        t == TileType.TRAMP_C or \
+        t == TileType.TRAMP_D or \
+        t == TileType.TRAMP_E or \
+        t == TileType.TRAMP_F or \
+        t == TileType.TRAMP_G or \
+        t == TileType.TRAMP_H or \
+        t == TileType.TRAMP_I
+
 
 def is_targ(t):
     return t == TileType.TARG_1 or \
-           t == TileType.TARG_2 or \
-           t == TileType.TARG_3 or \
-           t == TileType.TARG_4 or \
-           t == TileType.TARG_5 or \
-           t == TileType.TARG_6 or \
-           t == TileType.TARG_7 or \
-           t == TileType.TARG_8 or \
-           t == TileType.TARG_9
-
+        t == TileType.TARG_2 or \
+        t == TileType.TARG_3 or \
+        t == TileType.TARG_4 or \
+        t == TileType.TARG_5 or \
+        t == TileType.TARG_6 or \
+        t == TileType.TARG_7 or \
+        t == TileType.TARG_8 or \
+        t == TileType.TARG_9
 
 
 class MoveType():
     UP, DOWN, LEFT, RIGHT, WAIT, ABORT = range(6)
 
 
-
 class ResultType():
     OK, COMPLETED, ABORTED, CANNOT_MOVE, DEAD = range(5)
-
 
 
 class MoveEvent():
@@ -156,7 +186,6 @@ class MoveEvent():
             mvc.v.set(self.rock, TileType.ROCK)
 
 
-
 class RockEvent():
     def __init__(self, old, new):
         self.old = old
@@ -170,31 +199,30 @@ class RockEvent():
         mvc.m.moved_rocks.add(self.new)
 
 
-
-def is_move_possible(dir, old, new, rock):
+def is_move_possible(direction, old, new, rock):
     old_tile = mvc.v.get(old)
     new_tile = mvc.v.get(new)
     rock_tile = mvc.v.get(rock) if rock is not None else None
     if old_tile == TileType.ROBOT:
         if new_tile == TileType.EMPTY or \
-            new_tile == TileType.EARTH or \
-            new_tile == TileType.LAMBDA or \
-            new_tile == TileType.OLL or \
-            is_tramp(new_tile):
+                new_tile == TileType.EARTH or \
+                new_tile == TileType.LAMBDA or \
+                new_tile == TileType.OLL or \
+                is_tramp(new_tile):
             return 0
         if new_tile == TileType.ROCK and \
-            rock_tile == TileType.EMPTY and \
-            (dir == MoveType.LEFT or dir == MoveType.RIGHT):
+                rock_tile == TileType.EMPTY and \
+                (direction == MoveType.LEFT or direction == MoveType.RIGHT):
             return 1
     return -1
-
 
 
 class Controller():
     def __init__(self):
         pass
 
-    def update(self):
+    @staticmethod
+    def update():
         current_unstable = list(sorted(mvc.m.unstable_rocks))
         mvc.m.unstable_rocks = set()
 
@@ -217,9 +245,11 @@ class Controller():
                 e = RockEvent(rock, r)
                 events.append(e)
 
-        for e in events: e.apply()
+        for e in events:
+            e.apply()
 
-    def check_if_dead(self):
+    @staticmethod
+    def check_if_dead():
         robot = mvc.m.robot + w()
         for r in mvc.m.moved_rocks:
             if robot == r:
@@ -259,7 +289,7 @@ class Controller():
             new = num(old_x + 1, old_y)
             rock = num(old_x + 2, old_y)
 
-        move_mode = is_move_possible(move, old, new, rock);
+        move_mode = is_move_possible(move, old, new, rock)
         if move_mode == 1:
             e = MoveEvent(old, new, rock)
             e.apply()
@@ -280,14 +310,15 @@ class Controller():
             res = ResultType.DEAD
         return res
 
+
 class Model():
     def __init__(self, raw_footer):
-        self.robot = num(0,0)
+        self.robot = num(0, 0)
         self.active_lambdas = set()
         self.picked_lambdas = set()
         self.unstable_rocks = set()
         self.moved_rocks = set()
-        self.lift = num(0,0)
+        self.lift = num(0, 0)
         self.lift_open = False
 
         self.updates = defaultdict(set)
@@ -299,7 +330,7 @@ class Model():
 
         for y in range(h()):
             for x in range(w()):
-                n = num(x,y)
+                n = num(x, y)
                 e = mvc.v.get(n)
                 if e == TileType.ROBOT:
                     self.add_robot(n)
@@ -323,7 +354,6 @@ class Model():
         self.trampolines = {}
         self.targets = defaultdict(set)
 
-        footer = {}
         for l in raw_footer:
             l = l.split(" ")
             if l[0] == "Waterproof":
@@ -338,7 +368,7 @@ class Model():
                 self.trampolines[tramp] = targ
                 self.targets[targ].add(tramp)
 
-        self.water = self.water - 1
+        self.water += -1
 
         self.wetness = 0
 
@@ -348,12 +378,12 @@ class Model():
 
         x, y = tup(self.robot)
         if y <= self.water:
-            self.wetness = self.wetness + 1
+            self.wetness += 1
         else:
             self.wetness = 0
 
         if self.turn % self.flooding == 0:
-            self.water = self.water + 1
+            self.water += 1
 
     def check_is_done(self):
         if len(self.active_lambdas) == 0:
@@ -361,12 +391,11 @@ class Model():
             mvc.v.set(self.lift, TileType.OLL)
 
     def has_reached_lift(self):
-        return True if len(self.active_lambdas) == 0 and \
-                    self.robot == self.lift \
-            else False
+        return len(self.active_lambdas) == 0 and \
+            self.robot == self.lift
 
     def next_turn(self):
-        self.turn = self.turn + 1
+        self.turn += 1
         self.moved_rocks = set()
         self.update_flood()
         self.check_is_done()
@@ -383,7 +412,7 @@ class Model():
     def add_robot(self, n):
         self.robot = n
 
-    def move_robot(self, old, new):
+    def move_robot(self, _, new):
         self.robot = new
         new_tile = mvc.v.get(new)
         if new_tile == TileType.LAMBDA:
@@ -393,7 +422,8 @@ class Model():
         self.active_lambdas.add(n)
 
     def pick_lambda(self, n):
-        if n in self.active_lambdas: self.active_lambdas.remove(n)
+        if n in self.active_lambdas:
+            self.active_lambdas.remove(n)
         self.picked_lambdas.add(n)
 
     def add_rock(self, n):
@@ -401,7 +431,8 @@ class Model():
         self.add_deps(n)
 
     def remove_rock(self, n):
-        if n in self.unstable_rocks: self.unstable_rocks.remove(n)
+        if n in self.unstable_rocks:
+            self.unstable_rocks.remove(n)
         self.remove_deps(n)
 
     def move_rock(self, old, new):
@@ -416,12 +447,14 @@ class Model():
     def remove_deps(self, n):
         deps = self.get_deps(n)
         for d in deps:
-            if n in self.updates[d]: self.updates[d].remove(n)
+            if n in self.updates[d]:
+                self.updates[d].remove(n)
 
     def touch(self, n):
         self.unstable_rocks = self.unstable_rocks.union(self.updates[n])
 
-    def get_deps(self, n):
+    @staticmethod
+    def get_deps(n):
         x, y = tup(n)
         deps = []
         y_b = y - 1
@@ -448,17 +481,16 @@ class Model():
         self.lift_open = False
 
     def __str__(self):
-        res = "Size: (" + str(converter.width) + "," + str(converter.height) + ")\n\n"
-        res = res + "R: " + str(tup(self.robot)) + "\n\n"
-        res = res + ("O: " if self.lift_open else "C: ") + str(self.lift) + "\n\n"
-        res = res + "AL: " + str([tup(e) for e in self.active_lambdas]) + "\n\n"
-        res = res + "PL: " + str([tup(e) for e in self.picked_lambdas]) + "\n\n"
-        res = res + "UR: " + str([tup(e) for e in self.unstable_rocks]) + "\n\n"
-        res = res + "DD: " + str([str(tup(k)) + "->" + str([tup(e) for e in v]) for k, v in self.updates.items()]) + "\n\n"
-        res = res + "TR: " + str([str(tup(k)) + "->" + str(tup(v)) for k, v in self.trampolines.items()]) + "\n\n"
-        res = res + "TA: " + str([str(tup(k)) + "->" + str([tup(e) for e in v]) for k, v in self.targets.items()]) + "\n\n"
+        res = "Size: ({}, {})\n\n" % converter.width, converter.height
+        res += "R: {}\n\n" % tup(self.robot)
+        res += "L({}): {}\n\n" % self.lift_open, self.lift
+        res += "AL: {}\n\n" % [tup(e) for e in self.active_lambdas]
+        res += "PL: {}\n\n" % [tup(e) for e in self.picked_lambdas]
+        res += "UR: {}\n\n" % [tup(e) for e in self.unstable_rocks]
+        res += "DD: {}\n\n" % [str(tup(k)) + "->" + str([tup(e) for e in v]) for k, v in self.updates.items()]
+        res += "TR: {}\n\n" % [str(tup(k)) + "->" + str(tup(v)) for k, v in self.trampolines.items()]
+        res += "TA: {}\n\n" % [str(tup(k)) + "->" + str([tup(e) for e in v]) for k, v in self.targets.items()]
         return res
-
 
 
 class View():
@@ -474,58 +506,69 @@ class View():
             l = raw_map[y]
             for x in range(width):
                 e = l[x]
-                n = num(x,y)
-                if e == "R":    parsed_map[n] = TileType.ROBOT
-                elif e == "*":  parsed_map[n] = TileType.ROCK
-                elif e == "L":  parsed_map[n] = TileType.CLL
-                elif e == ".":  parsed_map[n] = TileType.EARTH
-                elif e == "#":  parsed_map[n] = TileType.WALL
-                elif e == "\\": parsed_map[n] = TileType.LAMBDA
-                elif e == "O":  parsed_map[n] = TileType.OLL
-                elif e == " ":  parsed_map[n] = TileType.EMPTY
+                n = num(x, y)
+                if e == "R":
+                    parsed_map[n] = TileType.ROBOT
+                elif e == "*":
+                    parsed_map[n] = TileType.ROCK
+                elif e == "L":
+                    parsed_map[n] = TileType.CLL
+                elif e == ".":
+                    parsed_map[n] = TileType.EARTH
+                elif e == "#":
+                    parsed_map[n] = TileType.WALL
+                elif e == "\\":
+                    parsed_map[n] = TileType.LAMBDA
+                elif e == "O":
+                    parsed_map[n] = TileType.OLL
+                elif e == " ":
+                    parsed_map[n] = TileType.EMPTY
                 elif to_tramp(e) is not None: 
                     parsed_map[n] = to_tramp(e)
                 elif to_targ(e) is not None:
                     parsed_map[n] = to_targ(e)
-                else:           raise ex.BotException("Unknown symbol <" + e + "> in map")
+                else:
+                    raise ex.BotException("Unknown symbol <" + e + "> in map")
 
         self.map = parsed_map
 
-    def get(self,n):
+    def get(self, n):
         return self.map[n]
 
-    def set(self,n,t):
+    def set(self, n, t):
         self.map[n] = t
 
-    def get_all(self,l):
+    def get_all(self, l):
         return [self.map[n] for n in l]
 
     def __str__(self):
         res = ""
-        for y in range(self.height-1,-1,-1):
+        for y in range(self.height-1, -1, -1):
             for x in range(self.width):
-                n = num(x,y)
-                res = res + chr(self.map[n])
+                n = num(x, y)
+                res += chr(self.map[n])
             if y == (mvc.m.water if mvc.m is not None else -1):
-                res = res + "*\n"
+                res += "*\n"
             else:
-                res = res + "\n"
+                res += "\n"
         return res
 
 
-
 class MapReader():
-    def __init__(self, input, output):
-        lines = input.readlines()
+    def __init__(self, input_, _):
+        lines = input_.readlines()
 
         map_lines = []
         footer = []
         is_footer = False
         for l in lines:
             if l != "\n":
-                if not is_footer: map_lines.append(l)
-                else: footer.append(l)
-            else: is_footer = True
+                if not is_footer:
+                    map_lines.append(l)
+                else:
+                    footer.append(l)
+            else:
+                is_footer = True
 
         map_lines = [s.strip() for s in map_lines]
         width = max([len(s) for s in map_lines])
